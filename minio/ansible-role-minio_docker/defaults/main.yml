@@ -1,0 +1,15 @@
+---
+
+minio_docker_version: "latest"
+minio_docker_service_name: "minio"
+minio_docker_network_name: "minio-main-network"
+minio_docker_network_external: false
+minio_docker_project_location: "/home/minio"
+minio_docker_timezone: "Europe/Moscow"
+minio_docker_user: ""
+minio_docker_group: ""
+minio_docker_server_port: 9000
+minio_docker_console_port: 9001
+minio_docker_root_user: "minioadmin"
+minio_docker_root_password: "minioadmin123"
+minio_docker_default_bucket: "bucket_default"

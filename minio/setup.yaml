@@ -1,0 +1,6 @@
+- hosts: all
+  become: true
+  roles:
+  # - minio-role
+  # - docker
+  - ansible-role-minio_docker
