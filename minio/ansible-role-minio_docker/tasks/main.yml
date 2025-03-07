@@ -19,6 +19,46 @@
         recurse: true
       when: not minio_init_dir.stat.exists
 
+    # - name: create directories for minio if they don't exist
+    #   file:
+    #     path: "{{ item }}"
+    #     state: directory
+    #     owner: root
+    #     group: root
+    #     mode: "0775"
+    #   loop:
+    #     - /minio/disc1
+    #     - /minio/disc2
+    #     - /minio/disc3
+    #     - /minio/disc4
+
+    - name: Configure MinIO data disks /etc/fstab and mount them
+      ansible.posix.mount:
+        path: "/mnt/{{ item.dir }}"
+        src: "LABEL={{ item.label }}"
+        fstype: xfs
+        opts: defaults,noatime,auto
+        dump: 0
+        passno: 2
+        state: mounted
+      with_items:
+        - { dir: 'disk1', label: 'DISK1' }
+        - { dir: 'disk2', label: 'DISK2' }
+        - { dir: 'disk3', label: 'DISK3' }
+        - { dir: 'disk4', label: 'DISK4' }
+
+
+    - name: Create MinIO tenant directories on the data disks
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        mode: "0755"
+      with_items:
+        - /mnt/disk1/infra
+        - /mnt/disk2/infra
+        - /mnt/disk3/infra
+        - /mnt/disk4/infra
+
   rescue:
     - name: STORAGE | Initialized MINIO project errors
       ansible.builtin.debug:

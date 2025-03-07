@@ -18,9 +18,12 @@ services:
     networks:
         - {{ minio_docker_network_name }}
     volumes:
-        - {{ minio_docker_project_location }}/data:/data:rw
+        - /mnt/disk1/infra:/mnt/disk1/infra:rw
+        - /mnt/disk2/infra:/mnt/disk2/infra:rw
+        - /mnt/disk3/infra:/mnt/disk3/infra:rw
+        - /mnt/disk4/infra:/mnt/disk4/infra:rw
     
-    command: server --console-address ":9001" http://minio{1...4}/data
+    command: server --console-address ":9001" http://minio{1...4}/mnt/disk{1...4}/infra
             
     healthcheck:
         test: ["CMD", "curl", "-f", "http://localhost:{{ minio_docker_server_port }}/minio/health/live"]
