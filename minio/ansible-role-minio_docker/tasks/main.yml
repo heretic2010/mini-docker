@@ -119,7 +119,7 @@
       ansible.builtin.cron:
         name: "a job for reboot"
         special_time: reboot
-        job: "/usr/local/bin/docker compose -f /home/minio/data/docker-compose.yml up -d"
+        job: "/usr/bin/docker compose -f /home/minio/data/docker-compose.yml up -d"
       when:
         - compose_file.stat.exists
 
