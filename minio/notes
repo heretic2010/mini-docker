@@ -2,6 +2,5 @@ Way to increase disks on node:
 
 1. Stop docker container.
 2. umount /mnt/disk(n)
-3. wipe all data or maybe recreate partitiom fdisk /dev/sdb
-4. lable all disk with mkfs.xfs /dev/sdb  -f -L DISK1
-5. run ansible-playbook -i inventory setup.yaml -u root
+3. lable all disk with mkfs.xfs /dev/sdb  -f -L DISK1
+4. run ansible-playbook -i inventory setup.yaml -u root
