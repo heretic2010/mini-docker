@@ -19,20 +19,7 @@
         recurse: true
       when: not minio_init_dir.stat.exists
 
-    # - name: create directories for minio if they don't exist
-    #   file:
-    #     path: "{{ item }}"
-    #     state: directory
-    #     owner: root
-    #     group: root
-    #     mode: "0775"
-    #   loop:
-    #     - /minio/disc1
-    #     - /minio/disc2
-    #     - /minio/disc3
-    #     - /minio/disc4
-
-    - name: Configure MinIO data disks /etc/fstab and mount them
+    - name: STORAGE | Configure MinIO data disks /etc/fstab and mount them
       ansible.posix.mount:
         path: "/mnt/{{ item.dir }}"
         src: "LABEL={{ item.label }}"
@@ -48,7 +35,7 @@
         - { dir: 'disk4', label: 'DISK4' }
 
 
-    - name: Create MinIO tenant directories on the data disks
+    - name: STORAGE |Create MinIO tenant directories on the data disks
       ansible.builtin.file:
         path: "{{ item }}"
         state: directory
@@ -84,7 +71,7 @@
     - name: STORAGE | Copy MinIO docker compose variables
       ansible.builtin.template:
         src: compose.j2
-        dest: "{{ minio_docker_project_location }}/docker-compose.yml"
+        dest: "{{ minio_docker_project_location }}/data/docker-compose.yml"
         mode: "0644"
         lstrip_blocks: true
         force: true
@@ -100,12 +87,12 @@
 
     - name: STORAGE | Check docker compose file
       ansible.builtin.stat:
-        path: "{{ minio_docker_project_location }}/docker-compose.yml"
+        path: "{{ minio_docker_project_location }}/data/docker-compose.yml"
       register: compose_file
 
     - name: STORAGE | Stop `docker-compose down` MinIO
       community.docker.docker_compose:
-        project_src: "{{ minio_docker_project_location }}"
+        project_src: "{{ minio_docker_project_location }}/data"
         state: absent
         remove_orphans: true
       become: true
@@ -116,27 +103,27 @@
     
     - name: Run `docker compose up` again
       community.docker.docker_compose_v2:
-        project_src: "{{ minio_docker_project_location }}"
+        project_src: "{{ minio_docker_project_location }}/data"
         build: always
       register: output
       when: (not minio_container.exists and minio_dir.stat.isdir and compose_file.stat.exists) or continer_stop.changed
 
 
-    # - name: STORAGE | Run `docker-compose up` MinIO
-    #   community.docker.docker_compose:
-    #     project_src: "{{ minio_docker_project_location }}"
-    #     build: true
-    #   when: (not minio_container.exists and minio_dir.stat.isdir and compose_file.stat.exists) or continer_stop.changed
+    - name: STORAGE | Run `docker-compose up` MinIO
+      community.docker.docker_compose_v2:
+        project_src: "{{ minio_docker_project_location }}/data"
+        build: always
+      when: (not minio_container.exists and minio_dir.stat.isdir and compose_file.stat.exists) or continer_stop.changed
 
-  #   - name: Creates an entry like "@reboot docker compose minio"
-  #     ansible.builtin.cron:
-  #       name: "a job for reboot"
-  #       special_time: reboot
-  #       job: "/usr/local/bin/docker compose -f /home/minio/docker-compose.yml up -d"
-  #     when:
-  #       - compose_file.stat.exists
+    - name: Creates an entry like "@reboot docker compose minio"
+      ansible.builtin.cron:
+        name: "a job for reboot"
+        special_time: reboot
+        job: "/usr/local/bin/docker compose -f /home/minio/data/docker-compose.yml up -d"
+      when:
+        - compose_file.stat.exists
 
-  # rescue:
-  #   - name: STORAGE | Setup MINIO project errors
-  #     ansible.builtin.debug:
-  #       msg: "I caught an error, can do stuff here to fix it, :-)"
+  rescue:
+    - name: STORAGE | Setup MINIO project errors
+      ansible.builtin.debug:
+        msg: "I caught an error, can do stuff here to fix it, :-)"
